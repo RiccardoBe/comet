@@ -2000,7 +2000,10 @@ class CometNetService(CometNetBackend):
             # component is mutated. Discovery also builds complete candidates
             # before publishing them in its async loader below.
             if self.reputation:
-                ReputationStore.validate_persisted(state["reputation"])
+                ReputationStore.validate_persisted(
+                    state["reputation"],
+                    max_peers=getattr(self.reputation, "max_peers", 10_000),
+                )
             if self.keystore:
                 PublicKeyStore.validate_persisted(
                     state["keystore"], max_keys=self.keystore.max_keys

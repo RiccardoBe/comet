@@ -168,6 +168,12 @@ class PeerConnection:
 
 MessageHandler = Callable[[str, AnyMessage], Awaitable[None]]
 
+# A CometNet message may be up to 10 MiB. The websockets default queues 16
+# complete frames per connection before applying TCP backpressure, which can
+# retain roughly 8 GiB across 50 busy peers. A high-water mark of one is enough
+# because every connection already has a dedicated receive loop.
+_MAX_QUEUED_INBOUND_FRAMES = 1
+
 
 def compute_network_token(
     network_id: str, network_password: str, sender_id: str, timestamp: float
@@ -396,6 +402,7 @@ class ConnectionManager:
                 ping_interval=None,
                 ping_timeout=None,
                 max_size=self.max_message_size,
+                max_queue=_MAX_QUEUED_INBOUND_FRAMES,
                 process_request=self._process_request,
                 compression=self.websocket_compression,
             )
@@ -515,6 +522,7 @@ class ConnectionManager:
                     ping_interval=None,
                     ping_timeout=None,
                     max_size=self.max_message_size,
+                    max_queue=_MAX_QUEUED_INBOUND_FRAMES,
                     compression=self.websocket_compression,
                 ),
                 timeout=5.0,

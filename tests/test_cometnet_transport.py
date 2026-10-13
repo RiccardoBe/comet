@@ -78,6 +78,7 @@ class CometNetTransportTests(unittest.IsolatedAsyncioTestCase):
 
         self.assertIsNone(serve.await_args.kwargs["host"])
         self.assertEqual(serve.await_args.kwargs["port"], manager.listen_port)
+        self.assertEqual(serve.await_args.kwargs["max_queue"], 1)
         server.close.assert_called_once_with()
         server.wait_closed.assert_awaited_once_with()
 
@@ -171,9 +172,11 @@ class CometNetTransportTests(unittest.IsolatedAsyncioTestCase):
         connect_started = asyncio.Event()
         release_connect = asyncio.Event()
         websocket = AsyncMock()
+        connect_kwargs = {}
 
         async def connect(*args, **kwargs):
-            del args, kwargs
+            del args
+            connect_kwargs.update(kwargs)
             connect_started.set()
             await release_connect.wait()
             return websocket
@@ -192,6 +195,7 @@ class CometNetTransportTests(unittest.IsolatedAsyncioTestCase):
 
         self.assertIsNone(second)
         handshake.assert_awaited_once()
+        self.assertEqual(connect_kwargs["max_queue"], 1)
         self.assertEqual(manager._pending_connections, 0)
 
     async def test_inbound_handshake_reserves_global_capacity(self):

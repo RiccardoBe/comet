@@ -73,6 +73,32 @@ class CometNetDiscoveryTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(added, 1)
         self.assertEqual(set(service._known_peers), {"wss://valid.example"})
 
+    def test_incoming_catalog_evicts_oldest_peer_at_connection_capacity(self):
+        service = DiscoveryService(min_peers=1, max_peers=2)
+        for index in range(3):
+            address = f"wss://incoming-{index}.example"
+            service.record_incoming_connection(f"peer-{index}", address)
+            service._known_peers[address].last_seen = index
+
+        self.assertEqual(
+            set(service._known_peers),
+            {"wss://incoming-1.example", "wss://incoming-2.example"},
+        )
+        self.assertNotIn("peer-0", service._node_id_to_address)
+
+    def test_incoming_catalog_refreshes_peer_before_lru_eviction(self):
+        service = DiscoveryService(min_peers=1, max_peers=2)
+        service.record_incoming_connection("peer-1", "wss://incoming-1.example")
+        service.record_incoming_connection("peer-2", "wss://incoming-2.example")
+
+        service.record_incoming_connection("peer-1", "wss://incoming-1.example")
+        service.record_incoming_connection("peer-3", "wss://incoming-3.example")
+
+        self.assertEqual(
+            set(service._known_peers),
+            {"wss://incoming-1.example", "wss://incoming-3.example"},
+        )
+
     def test_persistence_keeps_freshest_address_for_each_node(self):
         service = DiscoveryService()
         service._add_known_peer("wss://old.example", "peer", "pex")
