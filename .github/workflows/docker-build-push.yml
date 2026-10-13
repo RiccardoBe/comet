@@ -14,7 +14,8 @@ jobs:
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/development'
     uses: ./.github/workflows/docker-build-common.yml
     with:
-      push-to-dockerhub: true
+      push-to-dockerhub: ${{ github.repository_owner == 'g0ldyy' }}
+      platforms: ${{ github.repository_owner == 'g0ldyy' && 'linux/amd64,linux/arm64' || 'linux/amd64' }}
       tags: |
         type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
         type=raw,value=dev,enable=${{ github.ref == 'refs/heads/development' }}
