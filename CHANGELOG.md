@@ -2,6 +2,24 @@
 
 <!-- markdownlint-disable MD024 -->
 
+## [2.59.0](https://github.com/RiccardoBe/comet/compare/v2.58.0...v2.59.0) (2026-10-13)
+
+
+### Features
+
+* **imdb:** implement title lookup caching and upsert functionality ([c1d1766](https://github.com/RiccardoBe/comet/commit/c1d1766688549be6058523f6ebf686eb58af3153))
+* **torrent:** enhance metadata broadcasting to skip invalid entries ([77bdada](https://github.com/RiccardoBe/comet/commit/77bdada7c79037d035647679ac27d7d132df90b4))
+
+
+### Bug Fixes
+
+* **cache:** preserve source through deduplication ([8b4d1e8](https://github.com/RiccardoBe/comet/commit/8b4d1e86c2ab2dbe86578ee9c0491e7270cb72b3))
+* **cache:** reparse cached titles before validation ([ba13689](https://github.com/RiccardoBe/comet/commit/ba13689a5a58de356604c1b23345fdc4aacc534b))
+* **cache:** revalidate cached torrent titles ([a9e9994](https://github.com/RiccardoBe/comet/commit/a9e99947cb182677e089e39132457000179817f9))
+* **cometnet:** bound peer catalogs to stop unbounded memory growth ([331f239](https://github.com/RiccardoBe/comet/commit/331f239e7a06711f1911e6d2a81bb9181390653d))
+* **dependencies:** update torrent-parse-rank source reference to latest commit ([efcb4f8](https://github.com/RiccardoBe/comet/commit/efcb4f86684e5be45c25019636ae3588c1ac2f2a))
+* support HEAD on playback and debrid-sync endpoints ([6c253b6](https://github.com/RiccardoBe/comet/commit/6c253b6cac301127d989bfccbf4741506cf69ae4))
+
 ## [2.58.0](https://github.com/g0ldyy/comet/compare/v2.57.0...v2.58.0) (2026-07-27)
 
 
