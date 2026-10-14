@@ -18,6 +18,11 @@ from comet.services.torrent_manager import (
 )
 
 
+def _normalize_indexer(name: object) -> str:
+    """Normalize an indexer name like the *_INDEXERS settings do."""
+    return name.replace(" ", "").lower() if isinstance(name, str) else ""
+
+
 class ProwlarrScraper(BaseScraper):
     def __init__(self, manager, session, url: str):
         super().__init__(manager, session, url)
@@ -37,7 +42,15 @@ class ProwlarrScraper(BaseScraper):
 
         torrents = []
 
-        if "downloadUrl" in result:
+        # Prefer the info hash Prowlarr already returned: downloading the
+        # .torrent through Prowlarr is slow and, when it fails, Prowlarr
+        # temporarily disables the whole indexer.
+        if not result.get("infoHash") and "downloadUrl" in result:
+            if _normalize_indexer(result.get("indexer")) in set(
+                settings.PROWLARR_NO_DOWNLOAD_INDEXERS
+            ):
+                return torrents
+
             content, magnet_hash, magnet_url = await download_torrent(
                 self.session, result["downloadUrl"]
             )

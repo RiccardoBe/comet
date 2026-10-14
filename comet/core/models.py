@@ -199,6 +199,7 @@ class AppSettings(ServerSettings):
     PROWLARR_URL: str | None = "http://127.0.0.1:9696"
     PROWLARR_API_KEY: str | None = None
     PROWLARR_INDEXERS: list[str] = Field(default_factory=list)
+    PROWLARR_NO_DOWNLOAD_INDEXERS: list[str] = Field(default_factory=list)
     GET_TORRENT_TIMEOUT: int | None = 5
     MAGNET_RESOLVE_TIMEOUT: int | None = 60
     CATALOG_TIMEOUT: int | None = 30
@@ -614,7 +615,10 @@ class AppSettings(ServerSettings):
         return value
 
     @field_validator(
-        "INDEXER_MANAGER_INDEXERS", "JACKETT_INDEXERS", "PROWLARR_INDEXERS"
+        "INDEXER_MANAGER_INDEXERS",
+        "JACKETT_INDEXERS",
+        "PROWLARR_INDEXERS",
+        "PROWLARR_NO_DOWNLOAD_INDEXERS",
     )
     def indexer_manager_indexers_normalization(cls, v, values):
         v = [indexer.replace(" ", "").lower() for indexer in v]

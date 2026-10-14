@@ -191,3 +191,62 @@ class IndexerScraperTests(unittest.IsolatedAsyncioTestCase):
             [(torrent["infoHash"], torrent["tracker"]) for torrent in torrents],
             [("2" * 40, "StremThru|Knaben"), ("3" * 40, "StremThru")],
         )
+
+
+def _prowlarr_result(indexer, info_hash=None, download=True):
+    result = {
+        "title": "Show S01E01 1080p",
+        "seeders": 5,
+        "size": 1,
+        "indexer": indexer,
+        "infoUrl": f"https://{indexer}.test/1",
+    }
+    if info_hash:
+        result["infoHash"] = info_hash
+    if download:
+        result["downloadUrl"] = f"http://prowlarr.test/{indexer}/download"
+    return result
+
+
+class ProwlarrProcessTorrentTests(unittest.IsolatedAsyncioTestCase):
+    async def test_info_hash_is_used_without_downloading(self):
+        scraper = ProwlarrScraper(None, None, "https://prowlarr.test")
+        download = AsyncMock()
+        with patch("comet.scrapers.prowlarr.download_torrent", download):
+            torrents = await scraper.process_torrent(
+                _prowlarr_result("Il Corsaro Blu", info_hash="A" * 40), "tt1", 1
+            )
+
+        download.assert_not_awaited()
+        self.assertEqual([t["infoHash"] for t in torrents], ["a" * 40])
+
+    async def test_no_download_indexer_skips_results_without_hash(self):
+        scraper = ProwlarrScraper(None, None, "https://prowlarr.test")
+        download = AsyncMock()
+        with (
+            patch("comet.scrapers.prowlarr.download_torrent", download),
+            patch(
+                "comet.scrapers.prowlarr.settings.PROWLARR_NO_DOWNLOAD_INDEXERS",
+                ["knaben"],
+            ),
+        ):
+            torrents = await scraper.process_torrent(
+                _prowlarr_result("Knaben"), "tt1", 1
+            )
+
+        download.assert_not_awaited()
+        self.assertEqual(torrents, [])
+
+    async def test_other_indexers_still_download_without_hash(self):
+        scraper = ProwlarrScraper(None, None, "https://prowlarr.test")
+        download = AsyncMock(return_value=(None, None, None))
+        with (
+            patch("comet.scrapers.prowlarr.download_torrent", download),
+            patch(
+                "comet.scrapers.prowlarr.settings.PROWLARR_NO_DOWNLOAD_INDEXERS",
+                ["knaben"],
+            ),
+        ):
+            await scraper.process_torrent(_prowlarr_result("1337x"), "tt1", 1)
+
+        download.assert_awaited_once()
