@@ -24,7 +24,7 @@ class AdminMetricsRefreshTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_stale_snapshot_is_served_while_one_refresh_runs(self):
         release = asyncio.Event()
-        refresh = AsyncMock(side_effect=lambda: release.wait())
+        refresh = AsyncMock(side_effect=release.wait)
         stale = {"payload_json": '{"torrents":{"total":1}}', "refreshed_at": 0}
         with (
             patch.object(admin.settings, "PUBLIC_METRICS_API", True),
